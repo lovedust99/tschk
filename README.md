@@ -1,5 +1,4 @@
 
-
 <div align="center">
 
 # TokenStatusCheck
@@ -14,8 +13,31 @@
 - ✅ 支持[LLM Red Team-Free-API](https://github.com/LLM-Red-Team)项目，持续更新。
 - ✅ 支持查看官方API的用量及状态（更新中）。
 - ✅ 根据接口响应可对接个人数据库（不内置，需自行调用接口，也可自行修改源代码）。
-- ⬜ 个人比较忙，有时间的话把各官方平台的token检测也糊上去。
 - ⬜ 有时间准备支持配置数据库环境变量，直接修改失效token。
+
+
+
+<!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
+
+<!-- code_chunk_output -->
+
+- [TokenStatusCheck](#tokenstatuscheck)
+  - [功能](#功能)
+  - [准备](#准备)
+  - [部署使用](#部署使用)
+  - [说明](#说明)
+  - [LLM-Token状态检测 使用方法](#llm-token状态检测-使用方法)
+  - [官方API状态检测（更新中）](#官方api状态检测更新中)
+      - [DeepSeek：提供详略两种查询方式](#deepseek提供详略两种查询方式)
+        - [一：查看单个token的详细信息](#一查看单个token的详细信息)
+        - [二：通过配置账号列表来查看多token时的每个token的可用额度](#二通过配置账号列表来查看多token时的每个token的可用额度)
+      - [其他更新中](#其他更新中)
+  - [注意事项](#注意事项)
+  - [其他引用](#其他引用)
+
+<!-- /code_chunk_output -->
+
+
 
 ## 准备
 
@@ -64,8 +86,6 @@ cd data
 git clone https://github.com/lovedust99/tokenstatuscheck.git .
 ```
 
-6. 编辑data文件夹下不同项目的`token.json`文件，每行一个token，不要加标点符号。编辑好保存即可，无需重启容器。
-
 
 ## 说明
 | 环境变量                  | 值            | 说明    |对应的调用接口|
@@ -84,18 +104,20 @@ git clone https://github.com/lovedust99/tokenstatuscheck.git .
 
 
 
-## LLM-Token存活检测使用示例
+## LLM-Token状态检测 使用方法
 
-POST /api/LLM_TokenCheck/Check/deep
+进入docker-compose.yml同级目录的data文件夹，编辑不同项目文件夹下的`token.json`文件，每行一个token，不要加标点符号。编辑好保存即可，无需重启容器。
 
-header 需要设置 Authorization 头部：
+`POST` /api/LLM_TokenCheck/Check/deep
+
+请求头：需要设置 Authorization 头部：
 
 ```
 Authorization: Bearer [自己设定的请求头校验值]
 ```
 无需设置请求体
 
-响应数据：
+响应数据示例：
 ```
 {
     #token队列整体的状态，50%以上的token有效时为tokentrue，低于50%为tokenfalse
@@ -116,19 +138,19 @@ Authorization: Bearer [自己设定的请求头校验值]
 ```
 你可以根据这些返回内容进行二次定制。
 
-## 支持的官方API平台（更新中）
+## 官方API状态检测（更新中）
 
-#### DeepSeek：提供简略两种查询方式
+#### DeepSeek：提供详略两种查询方式
 
-##### 一：单次调用查看token详细信息
+##### 一：查看单个token的详细信息
 
-从官方API平台创建token时（或随后自行登录），打开用量信息页面：https://platform.deepseek.com/usage ，然后F12打开开发者工具，从Application > LocalStorage中找到userToken中的value值，这将作为`Authorization`的`Bearer Token`值：`Authorization: Bearer TOKEN`
+首次从官方API平台创建token时（也可以随时登录获取），打开用量信息页面：https://platform.deepseek.com/usage ，然后F12打开开发者工具，从Application > LocalStorage本地存储中找到userToken中的value值，这将作为`Authorization`的`Bearer Token`值：`Authorization: Bearer TOKEN`
 
 这个token可以保存下来，以便日后调用。
 
-GET  /api/OfficialTokenCheck/Check/deep/single
+`GET`  /api/OfficialTokenCheck/Check/deep/single
 
-header 需要设置 Authorization 头部：
+请求头：需要设置 Authorization 头部：
 
 ```
 Authorization: Bearer TOKEN
@@ -180,11 +202,11 @@ Authorization: Bearer TOKEN
 ```
 ##### 二：通过配置账号列表来查看多token时的每个token的可用额度
 
-编辑`data/OfficialToken/deep_user.json`文件，每行一条账号信息，格式为`13912341234-password`，不要加标点符号，末尾不要留空格。编辑好保存即可，无需重启容器。
+进入docker-compose.yml同级目录的data文件夹，编辑 `data/OfficialToken/deep_user.json` 文件，每行一条账号信息，格式为`13912341234-password`（中间通过 `-` 连接），不要加标点符号，末尾不要留空格。编辑好保存即可，无需重启容器。
 
-GET  /api/OfficialTokenCheck/Check/deep/list
+`GET`  /api/OfficialTokenCheck/Check/deep/list
 
-header 需要设置 Authorization 头部：
+请求头：需要设置 Authorization 头部：
 
 ```
 Authorization: Bearer [自己设定的请求头校验值（来自于环境变量）]
@@ -203,6 +225,7 @@ Authorization: Bearer [自己设定的请求头校验值（来自于环境变量
 
 
 #### 其他更新中
+目前已支持DeepSeek，无需实名认证即可使用官方Token，其他平台均需实名认证，批量获取状态意义不大。
 
 
 ## 注意事项
@@ -216,3 +239,4 @@ Authorization: Bearer [自己设定的请求头校验值（来自于环境变量
 ## 其他引用
 
 LLM Red Team : https://github.com/LLM-Red-Team
+DeepSeek开放平台：https://platform.deepseek.com/
