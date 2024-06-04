@@ -240,4 +240,5 @@ Authorization: Bearer [自己设定的请求头校验值（来自于环境变量
 ## 其他引用
 
 LLM Red Team : https://github.com/LLM-Red-Team
-DeepSeek开放平台：https://platform.deepseek.com/
+
+DeepSeek开放平台：https://platform.deepseek.com
