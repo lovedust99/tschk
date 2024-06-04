@@ -31,7 +31,7 @@ version: '3.8'
 services:
   tschk:
     image: lovedust99/tschk:latest
-    restart: alaways
+    restart: always
     environment:
       - TokenStatuCheckUrls__DeepTokenCheckUrl=[LLM地址/token/check] 
       - TokenStatuCheckUrls__QwenTokenCheckUrl=[LLM地址/token/check] 
