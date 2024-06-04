@@ -55,7 +55,8 @@ docker-compose up -d
 ```
 cd data
 
-git clone https://github.com/lovedust99/tokenstatuscheck.git
+git clone https://github.com/lovedust99/tokenstatuscheck.git .
+(注意末尾的 . )
 ```
 
 5. 编辑data文件下不同项目的`token.json`文件，每行一个token，不要加标点符号。编辑好保存即可，无需重启容器。
