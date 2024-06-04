@@ -28,6 +28,7 @@
   - [部署使用](#部署使用)
   - [说明](#说明)
   - [LLM-Token状态检测 使用方法](#llm-token状态检测-使用方法)
+      - [Uptime-Kuma监控](#uptime-kuma监控)
       - [应用场景扩展](#应用场景扩展)
   - [官方API状态检测（更新中）](#官方api状态检测更新中)
       - [DeepSeek：提供详略两种查询方式](#deepseek提供详略两种查询方式)
@@ -138,7 +139,14 @@ Authorization: Bearer [自己设定的请求头校验值]
     "validTokenPercentage": "75%"
 }
 ```
-你可以根据这些返回内容进行二次定制。
+你可以根据这些返回内容进行二次定制。下面提供一种最简单的通过uptime-kuma进行监控的示例，当然最合适的是配合数据库支持来使用。
+
+#### Uptime-Kuma监控
+
+使用Uptime-Kuma的 `http关键字` 监控类型，具体配置如下：
+
+![1](https://github.com/lovedust99/Source/blob/main/pic/1.jpg?raw=true)
+
 
 #### 应用场景扩展
 部分用户将LLM分为免费和付费版（当然，你可以定义其他场景），两个版本对应不同的token，为了防止token检测时产生混淆，这里提供一种扩展支持。
