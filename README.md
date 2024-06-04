@@ -51,7 +51,11 @@ services:
 ```
 docker-compose up -d
 ```
-4. 
+4. 查看是否正常启动
+```
+docker ps
+```
+5. 启动成功后
 ```
 cd data
 
