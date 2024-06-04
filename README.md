@@ -12,6 +12,7 @@
 
 - ✅ 详细的token状态响应。
 - ✅ 支持[LLM Red Team-Free-API](https://github.com/LLM-Red-Team)项目，持续更新。
+- ✅ 支持查看官方API的用量及状态。
 - ✅ 根据接口响应可对接个人数据库（不内置，需自行调用接口，也可自行修改源代码）。
 - ⬜ 个人比较忙，有时间的话把各官方平台的token检测也糊上去。
 - ⬜ 有时间准备支持配置数据库环境变量，直接修改失效token。
@@ -55,15 +56,16 @@ docker-compose up -d
 ```
 docker ps
 ```
+
 5. 启动成功后
 ```
 cd data
 
 git clone https://github.com/lovedust99/tokenstatuscheck.git .
-(注意末尾的 . )
 ```
 
 6. 编辑data文件下不同项目的`token.json`文件，每行一个token，不要加标点符号。编辑好保存即可，无需重启容器。
+
 
 ## 说明
 | 环境变量                  | 值            | 说明    |对应的调用接口|
@@ -82,7 +84,7 @@ git clone https://github.com/lovedust99/tokenstatuscheck.git .
 
 
 
-## 使用示例
+## LLM-Token存活检测使用示例
 
 POST /api/LLM_TokenCheck/Check/deep
 
@@ -114,6 +116,65 @@ Authorization: Bearer [自己设定的请求头校验值]
 ```
 你可以根据这些返回内容进行二次定制。
 
+## 支持的官方API平台（更新中）
+
+##### DeepSeek
+
+GET  /api/OfficialTokenCheck/Check/deep/single
+
+header 需要设置 Authorization 头部：
+
+```
+Authorization: Bearer sk-XXX(官方API)
+```
+返回内容：
+```
+{
+    "code": 0,
+    "msg": "",
+    "data": {
+        "current_token": 10000000,
+        "monthly_usage": 0,
+        "total_usage": 0,
+        "normal_wallets": [
+            {
+                "currency": "CNY",
+
+                #充值余额
+                "balance": "0E-20", 
+
+                #充值余额可用的Token数量
+                "token_estimation": "0" 
+            }
+        ],
+        "bonus_wallets": [
+            {
+                "currency": "CNY",
+
+                #赠送余额
+                "balance": "10.00000000000000000000", 
+
+                #赠送余额可用的Token数量
+                "token_estimation": "5000000" 
+            }
+        ],
+        #充值余额+赠送余额可用的Token总数量
+        "total_available_token_estimation": "5000000", 
+        "monthly_costs": [
+            {
+                "currency": "CNY",
+                #月度消费金额
+                "amount": "0"  
+            }
+        ],
+        #月度Token使用量
+        "monthly_token_usage": 0 
+    }
+}
+```
+
+##### 其他更新中
+
 
 ## 注意事项
 
@@ -124,7 +185,3 @@ Authorization: Bearer [自己设定的请求头校验值]
 ## 其他引用
 
 LLM Red Team : https://github.com/LLM-Red-Team
-
-
-
-
