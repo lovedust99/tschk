@@ -16,13 +16,14 @@
 - ⬜ 有时间准备支持配置数据库环境变量，直接修改失效token。
 
 
-
+## 目录
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->
 
 - [TokenStatusCheck](#tokenstatuscheck)
   - [功能](#功能)
+  - [目录](#目录)
   - [准备](#准备)
   - [部署使用](#部署使用)
   - [说明](#说明)
