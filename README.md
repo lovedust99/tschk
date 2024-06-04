@@ -12,7 +12,7 @@
 
 - ✅ 详细的token状态响应。
 - ✅ 支持[LLM Red Team-Free-API](https://github.com/LLM-Red-Team)项目，持续更新。
-- ✅ 支持查看官方API的用量及状态。
+- ✅ 支持查看官方API的用量及状态（更新中）。
 - ✅ 根据接口响应可对接个人数据库（不内置，需自行调用接口，也可自行修改源代码）。
 - ⬜ 个人比较忙，有时间的话把各官方平台的token检测也糊上去。
 - ⬜ 有时间准备支持配置数据库环境变量，直接修改失效token。
@@ -64,7 +64,7 @@ cd data
 git clone https://github.com/lovedust99/tokenstatuscheck.git .
 ```
 
-6. 编辑data文件下不同项目的`token.json`文件，每行一个token，不要加标点符号。编辑好保存即可，无需重启容器。
+6. 编辑data文件夹下不同项目的`token.json`文件，每行一个token，不要加标点符号。编辑好保存即可，无需重启容器。
 
 
 ## 说明
@@ -118,14 +118,20 @@ Authorization: Bearer [自己设定的请求头校验值]
 
 ## 支持的官方API平台（更新中）
 
-##### DeepSeek
+#### DeepSeek：提供简略两种查询方式
+
+##### 一：单次调用查看token详细信息
+
+从官方API平台创建token时（或随后自行登录），打开用量信息页面：https://platform.deepseek.com/usage ，然后F12打开开发者工具，从Application > LocalStorage中找到userToken中的value值，这将作为`Authorization`的`Bearer Token`值：`Authorization: Bearer TOKEN`
+
+这个token可以保存下来，以便日后调用。
 
 GET  /api/OfficialTokenCheck/Check/deep/single
 
 header 需要设置 Authorization 头部：
 
 ```
-Authorization: Bearer sk-XXX(官方API)
+Authorization: Bearer TOKEN
 ```
 返回内容：
 ```
@@ -172,11 +178,36 @@ Authorization: Bearer sk-XXX(官方API)
     }
 }
 ```
+##### 二：通过配置账号列表来查看多token时的每个token的可用额度
 
-##### 其他更新中
+编辑`data/OfficialToken/deep_user.json`文件，每行一条账号信息，格式为`13912341234-password`，不要加标点符号，末尾不要留空格。编辑好保存即可，无需重启容器。
+
+GET  /api/OfficialTokenCheck/Check/deep/list
+
+header 需要设置 Authorization 头部：
+
+```
+Authorization: Bearer [自己设定的请求头校验值（来自于环境变量）]
+```
+返回内容(数组)：
+```
+[
+  # 与json文件中的账号顺序一致，这里只显示可用总额度，包括充值额度和赠送额度
+    "5000000",
+    "4722170",
+    "4742114",
+    "4705261",
+    "4659117"
+]
+```
+
+
+#### 其他更新中
 
 
 ## 注意事项
+
+- **json文件中每一行后面确保不要有空格！！！**
 
 - 建议每日一次调用或者至少每1小时调用，不要频繁调用。
 
