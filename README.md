@@ -1,6 +1,8 @@
 
 <div align="center">
 
+![1](https://github.com/lovedust99/Source/blob/main/pic/lovedust.png?raw=true)
+
 # TokenStatusCheck
 
 自用的一个很简单的小功能，用于通义千问、智谱清言等AI的token存活检测，主要用于有比较多的token的情况。可用来自动化更新token数据库实现剔除失效token。
