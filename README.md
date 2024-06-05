@@ -13,7 +13,11 @@
 - ✅ 支持[LLM Red Team-Free-API](https://github.com/LLM-Red-Team)项目，持续更新。
 - ✅ 支持查看官方API的用量及状态（更新中）。
 - ✅ 根据接口响应可对接个人数据库（目前该功能还未与我其他个人业务分离，之后会把分离后的代码挂上来）。
-- ⬜ 有时间准备支持配置数据库环境变量，直接修改失效token。
+
+TODO
+- ⬜ 有时间准备支持配置远程连接数据库环境变量，直接修改失效token。
+- ⬜ 增加可选功能，每次检测后将失效token删除并统一存放在其他位置，便于查看。
+- ⬜ 增加可视化支持，提供页面浏览所有服务token状态信息。
 
 
 ## 目录
@@ -261,3 +265,5 @@ Authorization: Bearer [自己设定的请求头校验值（来自于环境变量
 LLM Red Team : https://github.com/LLM-Red-Team
 
 DeepSeek开放平台：https://platform.deepseek.com
+
+Uptime-Kuma：https://github.com/louislam/uptime-kuma
