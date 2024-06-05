@@ -12,7 +12,7 @@
 - ✅ 详细的token状态响应。
 - ✅ 支持[LLM Red Team-Free-API](https://github.com/LLM-Red-Team)项目，持续更新。
 - ✅ 支持查看官方API的用量及状态（更新中）。
-- ✅ 根据接口响应可对接个人数据库（不内置，需自行调用接口，也可自行修改源代码）。
+- ✅ 根据接口响应可对接个人数据库（目前该功能还未与我其他个人业务分离，之后会把分离后的代码挂上来）。
 - ⬜ 有时间准备支持配置数据库环境变量，直接修改失效token。
 
 
@@ -27,7 +27,7 @@
   - [准备](#准备)
   - [部署使用](#部署使用)
   - [说明](#说明)
-  - [LLM-Token状态检测 使用方法](#llm-token状态检测-使用方法)
+  - [LLM-Free-api项目Token状态检测 使用方法](#llm-free-api项目token状态检测-使用方法)
       - [Uptime-Kuma监控](#uptime-kuma监控)
       - [应用场景扩展](#应用场景扩展)
   - [官方API状态检测（更新中）](#官方api状态检测更新中)
@@ -44,7 +44,7 @@
 
 ## 准备
 
-- 部署你的LLM-Free-api项目，这里不做赘述。
+- 部署了LLM-Free-api项目或者你在使用DeepSeek的官方Token，这里不做赘述。
 - docker环境
 
 ## 部署使用
@@ -103,11 +103,11 @@ git clone https://github.com/lovedust99/tokenstatuscheck.git .
 |TokenStatuCheckUrls__SparkTokenCheckUrl|[LLM地址/token/check]|讯飞星火|/api/LLM_TokenCheck/Check/spark|
 |UserAuthorization|[自己设定的请求头校验值]|自己设定的请求头校验值||
 
-部署了哪个就把哪个加到环境变量里，`UserAuthorization`是**必填**的，值随便写，主要用来做请求校验。
+部署了哪个LLM-Free-api项目就把哪个加到环境变量里，如果只是使用deepseek官方token的可以不用填，但无论如何 `UserAuthorization` 是**必填**的，值随便写，主要用来做请求校验。
 
 
 
-## LLM-Token状态检测 使用方法
+## LLM-Free-api项目Token状态检测 使用方法
 
 进入docker-compose.yml同级目录的data文件夹，编辑不同项目文件夹下的`token.json`文件，每行一个token，不要加标点符号。编辑好保存即可，无需重启容器。
 
