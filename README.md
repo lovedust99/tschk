@@ -101,6 +101,12 @@ cd data
 git clone https://github.com/lovedust99/tokenstatuscheck.git .
 ```
 
+*服务更新：*
+```
+docker-compose down && docker-compose pull && docker-compose up -d
+```
+
+
 
 ## 说明
 | 类型| 环境变量                  | 值            | 说明    |对应的调用接口|
