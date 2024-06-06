@@ -14,12 +14,14 @@
 - ✅ 详细的token状态响应。
 - ✅ 支持[LLM Red Team-Free-API](https://github.com/LLM-Red-Team)项目，持续更新。
 - ✅ 支持查看官方API的用量及状态（更新中）。
-- ✅ 根据接口响应可对接个人数据库（目前该功能还未与我其他个人业务分离，之后会把分离后的代码挂上来）。
+- ✅ LLM Red Team-Free-API状态监控支持对接[One-API](https://github.com/songquanpeng/one-api)。通过配置数据库环境变量，实现自动化Token维护。
+- ✅ 启用数据库自动化维护功能后，失效token不直接删除，会统一存放在其他位置以供查看。
 
 TODO
-- ⬜ 有时间准备支持配置远程连接数据库环境变量，直接修改失效token。
-- ⬜ 增加可选功能，每次检测后将失效token删除并统一存放在其他位置，便于查看。
 - ⬜ 增加可视化支持，提供页面浏览所有服务token状态信息。
+- ⬜ 增加状态总结脚本，总结所有服务的状态并返回，支持企业微信、SMTP推送，可以当做日报使用。
+- ⬜ 该项目还未与我其他个人业务实现分离，之后会把分离后的代码挂上来。
+- ⬜ 如需支持其他中转请提issue。
 
 
 ## 目录
@@ -33,10 +35,13 @@ TODO
   - [准备](#准备)
   - [部署使用](#部署使用)
   - [说明](#说明)
-  - [LLM-Free-api项目Token状态检测 使用方法](#llm-free-api项目token状态检测-使用方法)
+  - [💦LLM-Free-api-Token通用状态检测 使用方法](#llm-free-api-token通用状态检测-使用方法)
       - [Uptime-Kuma监控](#uptime-kuma监控)
       - [应用场景扩展](#应用场景扩展)
-  - [官方API状态检测（更新中）](#官方api状态检测更新中)
+  - [💦LLM-Free-api-Token自动化维护 使用方法](#llm-free-api-token自动化维护-使用方法)
+        - [⭕重要注意事项！](#重要注意事项)
+      - [Uptime-Kuma实现自动化维护](#uptime-kuma实现自动化维护)
+  - [💦官方API状态检测（更新中）](#官方api状态检测更新中)
       - [DeepSeek：提供详略两种查询方式](#deepseek提供详略两种查询方式)
         - [一：查看单个token的详细信息](#一查看单个token的详细信息)
         - [二：通过配置账号列表来查看多token时的每个token的可用额度](#二通过配置账号列表来查看多token时的每个token的可用额度)
@@ -50,7 +55,7 @@ TODO
 
 ## 准备
 
-- 部署了LLM-Free-api项目或者你在使用DeepSeek的官方Token，这里不做赘述。
+- 部署了LLM-Free-api项目或者你在使用DeepSeek的官方Token。
 - docker环境
 
 ## 部署使用
@@ -65,6 +70,7 @@ services:
     image: lovedust99/tschk:latest
     restart: always
     environment:
+      - UserAuthorization=[自己设定的请求头校验值]
       - TokenStatuCheckUrls__DeepTokenCheckUrl=[LLM地址/token/check] 
       - TokenStatuCheckUrls__QwenTokenCheckUrl=[LLM地址/token/check] 
       - TokenStatuCheckUrls__HailuoTokenCheckUrl=[LLM地址/token/check] 
@@ -73,7 +79,7 @@ services:
       - TokenStatuCheckUrls__GlmTokenCheckUrl=[LLM地址/token/check] 
       - TokenStatuCheckUrls__MoonshotTokenCheckUrl=[LLM地址/token/check] 
       - TokenStatuCheckUrls__SparkTokenCheckUrl=[LLM地址/token/check] 
-      - UserAuthorization=[自己设定的请求头校验值]
+      - ConnectionStrings__TS_Database=server=localhost;port=3306;database=one-api;userid=用户名;password=密码;
     ports:
       - "3000:80"
     volumes: 
@@ -97,23 +103,29 @@ git clone https://github.com/lovedust99/tokenstatuscheck.git .
 
 
 ## 说明
-| 环境变量                  | 值            | 说明    |对应的调用接口|
-| ------------------- | ------------- | ----------------------------------- |----------------------------------- |
-| TokenStatuCheckUrls__DeepTokenCheckUrl | [LLM地址/token/check]  | deepseek |/api/LLM_TokenCheck/Check/deep|
-|TokenStatuCheckUrls__QwenTokenCheckUrl|  [LLM地址/token/check] |   通义千问  |/api/LLM_TokenCheck/Check/qwen|
-|TokenStatuCheckUrls__HailuoTokenCheckUrl|[LLM地址/token/check]|海螺|/api/LLM_TokenCheck/Check/hailuo|
-|TokenStatuCheckUrls__MitaTokenCheckUrl|[LLM地址/token/check]|秘塔搜索|/api/LLM_TokenCheck/Check/mita|
-|TokenStatuCheckUrls__StepTokenCheckUrl|[LLM地址/token/check]|跃问Step|/api/LLM_TokenCheck/Check/step|
-|TokenStatuCheckUrls__GlmTokenCheckUrl|[LLM地址/token/check]|智谱Glm|/api/LLM_TokenCheck/Check/glm|
-|TokenStatuCheckUrls__MoonshotTokenCheckUrl|[LLM地址/token/check]|月之暗面Moonshot|/api/LLM_TokenCheck/Check/moonshot|
-|TokenStatuCheckUrls__SparkTokenCheckUrl|[LLM地址/token/check]|讯飞星火|/api/LLM_TokenCheck/Check/spark|
-|UserAuthorization|[自己设定的请求头校验值]|自己设定的请求头校验值||
+| 类型| 环境变量                  | 值            | 说明    |对应的调用接口|
+| -----| ------------------- | ------------- | ----------------------------------- |----------------------------------- |
+|必填|UserAuthorization|[自己设定的请求头校验值]|自己设定的请求头校验值||
+|可选|ConnectionStrings__TS_Database|server=数据库地址;port=数据库端口;database=数据库名称;userid=用户名;password=密码;|自动化维护需要设置的数据库连接字符串||
+|可选| TokenStatuCheckUrls__DeepTokenCheckUrl | [LLM地址/token/check]  | deepseek |/api/LLM_TokenCheck/Check/deep|
+|可选|TokenStatuCheckUrls__QwenTokenCheckUrl|  [LLM地址/token/check] |   通义千问  |/api/LLM_TokenCheck/Check/qwen|
+|可选|TokenStatuCheckUrls__HailuoTokenCheckUrl|[LLM地址/token/check]|海螺|/api/LLM_TokenCheck/Check/hailuo|
+|可选|TokenStatuCheckUrls__MitaTokenCheckUrl|[LLM地址/token/check]|秘塔搜索|/api/LLM_TokenCheck/Check/mita|
+|可选|TokenStatuCheckUrls__StepTokenCheckUrl|[LLM地址/token/check]|跃问Step|/api/LLM_TokenCheck/Check/step|
+|可选|TokenStatuCheckUrls__GlmTokenCheckUrl|[LLM地址/token/check]|智谱Glm|/api/LLM_TokenCheck/Check/glm|
+|可选|TokenStatuCheckUrls__MoonshotTokenCheckUrl|[LLM地址/token/check]|月之暗面Moonshot|/api/LLM_TokenCheck/Check/moonshot|
+|可选|TokenStatuCheckUrls__SparkTokenCheckUrl|[LLM地址/token/check]|讯飞星火|/api/LLM_TokenCheck/Check/spark|
 
-部署了哪个LLM-Free-api项目就把哪个加到环境变量里，如果只是使用deepseek官方token的可以不用填，但无论如何 `UserAuthorization` 是**必填**的，值随便写，主要用来做请求校验。
+- `UserAuthorization` 是**必填**的，值随便写，建议复杂一点并保证私密性，主要用来做请求校验。
+- 部署了哪个LLM-Free-api项目就把哪个加到环境变量里，如果没有某项目那么建议删掉他的环境变量，注意删掉 `[ ]`。
 
+- 如果要启用自动化维护功能，则需要配置数据库连接字符串环境变量。远程数据库防火墙需要同时放行端口，数据库地址可以使用公网地址也可以使用内网地址或容器网络，这里不介绍，具体请问你的AI助手。
 
+- 如果只是使用deepseek官方token的可以不用填写除`UserAuthorization`外的任何环境变量。
 
-## LLM-Free-api项目Token状态检测 使用方法
+## 💦LLM-Free-api-Token通用状态检测 使用方法
+
+**如果你需要自动化维护，那么可以跳过这一节。**
 
 进入docker-compose.yml同级目录的data文件夹，编辑不同项目文件夹下的`token.json`文件，每行一个token，不要加标点符号。编辑好保存即可，无需重启容器。
 
@@ -164,7 +176,68 @@ https://yoursite.com/api/LLM_TokenCheck/Check/deep/free
 
 接口的使用方式与上述一致。同时，你还需要在 `token.json` 同级目录下新增一个 `token2.json` 文件，用于存放免费token，格式与之前所述一致。
 
-## 官方API状态检测（更新中）
+## 💦LLM-Free-api-Token自动化维护 使用方法
+
+##### ⭕重要注意事项！
+- 目前已支持原生 `One-API` 。使用前请检查自己的项目是否一致或二开项目是否修改过数据库结构。如需其他中转，请提issue，会火速适配。
+- 在渠道中，请使用**批量添加功能**，保证**每个渠道只包含一个token**，以便于维护。没有使用批量添加的，请重新修改。图如下：
+
+![渠道](https://github.com/lovedust99/Source/blob/main/pic/qudao.png?raw=true)
+
+进入docker-compose.yml同级目录的data文件夹，编辑不同项目文件夹下的`token.json`文件，每行一个token，不要加标点符号。编辑好保存即可，无需重启容器。
+
+`POST` /api/LLM_TokenCheck/Check/deep/one
+
+请求头：需要设置 Authorization 头部：
+
+```
+Authorization: Bearer [自己设定的请求头校验值]
+```
+无需设置请求体
+
+响应数据示例：
+```
+{
+    #token队列整体的状态，50%以上的token有效时为tokentrue，低于50%为tokenfalse
+    "tokenStatus": "tokentrue",
+
+    #token队列中token总数
+    "totalTokenCount": 4,
+
+    #token队列中失效的token总数
+    "invalidCount": 1,
+
+    #token队列中失效token在队列中的位置，数组中有几代表第几个
+    "invalidTokenPositions": [2],
+    
+    #token队列中可用token占所有token的比例
+    "validTokenPercentage": "75%"
+
+    #请求结果
+    "message": "已检查 4 条 token， 1 条 token 已失效， 1 条token已被禁用。token队列已更新；失效token队列已更新。"
+}
+```
+
+此时，如果数据库环境变量配置正确，在one-api中的该渠道将被禁用，并且在项目文件夹下的 `token.json` 文件中，失效token将被移除并添加至同级目录下的 `expire_token.json` 中。
+
+下面提供一种通过uptime-kuma进行自动化维护的示例。
+
+#### Uptime-Kuma实现自动化维护
+
+使用Uptime-Kuma的 `http` 监控类型实现每日自动化维护，具体配置如下：
+
+建议将检测频率设置为 `每天一次` ，主要实现自动化。
+
+![monitor-auto](https://github.com/lovedust99/Source/blob/main/pic/monitor-auto.jpg?raw=true)
+
+同时，你还可以借鉴之前的通用状态监测，采用 `更短的检测频率` ，并对外作为状态页展示：例如：
+
+使用Uptime-Kuma的 `http关键字` 监控类型，具体配置如下：
+
+![1](https://github.com/lovedust99/Source/blob/main/pic/1.jpg?raw=true)
+
+
+## 💦官方API状态检测（更新中）
 
 #### DeepSeek：提供详略两种查询方式
 
@@ -266,6 +339,9 @@ Authorization: Bearer [自己设定的请求头校验值（来自于环境变量
 
 LLM Red Team : https://github.com/LLM-Red-Team
 
+One-API：https://github.com/songquanpeng/one-api
+
 DeepSeek开放平台：https://platform.deepseek.com
 
 Uptime-Kuma：https://github.com/louislam/uptime-kuma
+
