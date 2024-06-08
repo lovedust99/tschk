@@ -11,17 +11,18 @@
 
 ## 功能
 
-- ✅ 详细的token状态响应。
-- ✅ 支持[LLM Red Team-Free-API](https://github.com/LLM-Red-Team)项目，持续更新。
-- ✅ 支持查看官方API的用量及状态（更新中）。
-- ✅ LLM Red Team-Free-API状态监控支持对接[One-API](https://github.com/songquanpeng/one-api)。通过配置数据库环境变量，实现自动化Token维护。
+- ✅ 详细的token状态响应。目前已支持：[LLM Red Team-Free-API](https://github.com/LLM-Red-Team)项目、官方API，持续更新。
+- ✅ LLM Red Team-Free-API状态监控支持对接[One-API](https://github.com/songquanpeng/one-api)。
 - ✅ 启用数据库自动化维护功能后，失效token不直接删除，会统一存放在其他位置以供查看。
+- ✅ 增加可视化支持 `V1.3.0` ，提供友好的网页在线管理。提供控制台基本数据看板，支持查询所有服务状态、支持自动化管理、支持日志审计和网页管理等功能。
+- ✅ 项目轻量化，本体不含数据库，配置及token数据统一本地化存储。
 
 TODO
-- ⬜ 增加可视化支持，提供页面浏览所有服务token状态信息。
 - ⬜ 增加状态总结脚本，总结所有服务的状态并返回，支持企业微信、SMTP推送，可以当做日报使用。
+- ⬜ 集成国内大模型厂商数据监控服务（目前已支持deepseek）
+- ⬜ 增加NewAPI中转支持
 - ⬜ 该项目还未与我其他个人业务实现分离，之后会把分离后的代码挂上来。
-- ⬜ 如需支持其他中转请提issue。
+- ⬜ 如需支持其他内容请提issue。
 
 
 ## 目录
@@ -34,17 +35,20 @@ TODO
   - [目录](#目录)
   - [准备](#准备)
   - [部署使用](#部署使用)
-  - [说明](#说明)
-  - [💦LLM-Free-api-Token通用状态检测 使用方法](#llm-free-api-token通用状态检测-使用方法)
+  - [环境变量说明](#环境变量说明)
+  - [💦LLM-Free-api-通用状态检测（后端接口） 使用方法](#llm-free-api-通用状态检测后端接口-使用方法)
       - [Uptime-Kuma监控](#uptime-kuma监控)
       - [应用场景扩展](#应用场景扩展)
   - [💦LLM-Free-api-Token自动化维护 使用方法](#llm-free-api-token自动化维护-使用方法)
         - [⭕重要注意事项！](#重要注意事项)
       - [Uptime-Kuma实现自动化维护](#uptime-kuma实现自动化维护)
+  - [💦可视化服务](#可视化服务)
   - [💦官方API状态检测（更新中）](#官方api状态检测更新中)
-      - [DeepSeek：提供详略两种查询方式](#deepseek提供详略两种查询方式)
-        - [一：查看单个token的详细信息](#一查看单个token的详细信息)
+      - [DeepSeek：提供三种查询方式](#deepseek提供三种查询方式)
+        - [一：查看token的详细信息](#一查看token的详细信息)
         - [二：通过配置账号列表来查看多token时的每个token的可用额度](#二通过配置账号列表来查看多token时的每个token的可用额度)
+        - [三：通过配置API-Key列表来查看多token时的每个token的可用额度](#三通过配置api-key列表来查看多token时的每个token的可用额度)
+        - [当然你也可以使用可视化提供的服务进行查询](#当然你也可以使用可视化提供的服务进行查询)
       - [其他更新中](#其他更新中)
   - [注意事项](#注意事项)
   - [其他引用](#其他引用)
@@ -60,12 +64,13 @@ TODO
 
 ## 部署使用
 1. 创建文件夹 `mkdir tschk && cd tschk`
-2. 使用`Docker-Compose`部署。创建`docker-coompose.yml`文件，并复制以下内容
+2. 使用`Docker-Compose`部署。创建`docker-coompose.yml`文件，并复制以下内容（具体你要写哪些环境变量请参考下方说明）
 
 ```
 version: '3.8'
 
 services:
+# 后端接口
   tschk:
     image: lovedust99/tschk:latest
     restart: always
@@ -81,9 +86,23 @@ services:
       - TokenStatuCheckUrls__SparkTokenCheckUrl=[LLM地址/token/check] 
       - ConnectionStrings__TS_Database=server=localhost;port=3306;database=one-api;userid=用户名;password=密码;
     ports:
-      - "3000:80"
+      - "3010:80"
+    networks: 
+      - tschk-network
     volumes: 
       - ./data:/app/wwwroot 
+  # 以下为项目自带的前端管理服务，如果只调用接口，则下面内容可以删掉
+  tschkweb:
+    image: lovedust99/tschkweb:latest
+    restart: always
+    ports:
+      - "3020:2000"
+    networks: 
+      - tschk-network
+networks: 
+  tschk-network: 
+    driver: bridge
+
 ```
 3. 启动
 ```
@@ -105,10 +124,10 @@ git clone https://github.com/lovedust99/tokenstatuscheck.git .
 ```
 docker-compose down && docker-compose pull && docker-compose up -d
 ```
+部署完成后请看下面不同功能的使用说明
 
 
-
-## 说明
+## 环境变量说明
 | 类型| 环境变量                  | 值            | 说明    |对应的调用接口|
 | -----| ------------------- | ------------- | ----------------------------------- |----------------------------------- |
 |必填|UserAuthorization|[自己设定的请求头校验值]|自己设定的请求头校验值||
@@ -129,9 +148,9 @@ docker-compose down && docker-compose pull && docker-compose up -d
 
 - 如果只是使用deepseek官方token的可以不用填写除`UserAuthorization`外的任何环境变量。
 
-## 💦LLM-Free-api-Token通用状态检测 使用方法
+## 💦LLM-Free-api-通用状态检测（后端接口） 使用方法
 
-**如果你需要自动化维护，那么可以跳过这一节。**
+**如果你只需要调取接口，请阅读这一节；如果你需要自动化维护或使用可视化功能，那么可以跳过这一节。**
 
 进入docker-compose.yml同级目录的data文件夹，编辑不同项目文件夹下的`token.json`文件，每行一个token，不要加标点符号。编辑好保存即可，无需重启容器。
 
@@ -147,6 +166,9 @@ Authorization: Bearer [自己设定的请求头校验值]
 响应数据示例：
 ```
 {
+    #服务名称
+    "ServiceName": "LLM-Deep",
+
     #token队列整体的状态，50%以上的token有效时为tokentrue，低于50%为tokenfalse
     "tokenStatus": "tokentrue",
 
@@ -187,6 +209,7 @@ https://yoursite.com/api/LLM_TokenCheck/Check/deep/free
 ##### ⭕重要注意事项！
 - 目前已支持原生 `One-API` 。使用前请检查自己的项目是否一致或二开项目是否修改过数据库结构。如需其他中转，请提issue，会火速适配。
 - 在渠道中，请使用**批量添加功能**，保证**每个渠道只包含一个token**，以便于维护。没有使用批量添加的，请重新修改。图如下：
+- **如果你需要可视化服务，那么确保OneAPI/NewAPI渠道与上述方式一致后可以跳过此小节并进入下一节。如果你不需要自动化，但还想使用可视化服务，同样跳过此小节并进入下一节。**
 
 ![渠道](https://github.com/lovedust99/Source/blob/main/pic/qudao.png?raw=true)
 
@@ -226,10 +249,15 @@ Authorization: Bearer [自己设定的请求头校验值]
 
 此时，如果数据库环境变量配置正确，在one-api中的该渠道将被禁用，并且在项目文件夹下的 `token.json` 文件中，失效token将被移除并添加至同级目录下的 `expire_token.json` 中。
 
-下面提供一种通过uptime-kuma进行自动化维护的示例。
+
 
 #### Uptime-Kuma实现自动化维护
 
+**💛推荐：这种方式使用项目自带的可视化管理，提供较为完备的管理项目。**
+
+访问你在 `docker-compose.yml` 设置的前端地址，例如：http://123.123.123.123:3001。
+
+**这种方法不使用项目自带的可视化管理，而是直接调用接口实现自动化维护，更轻量化，但无法获悉实际状态。**
 使用Uptime-Kuma的 `http` 监控类型实现每日自动化维护，具体配置如下：
 
 建议将检测频率设置为 `每天一次` ，主要实现自动化。
@@ -242,12 +270,28 @@ Authorization: Bearer [自己设定的请求头校验值]
 
 ![1](https://github.com/lovedust99/Source/blob/main/pic/1.jpg?raw=true)
 
+## 💦可视化服务
+
+可视化服务可以用来自动化管理token，也可以用来实现最基础的token状态监测。
+
+确保你在docker-compose中配置了前端部分并正常启动。打开ip:前端服务端口，例如：http://1.1.1.1:3020。
+
+在右上角 `配置请求密钥` 中分别填写你在docker-compose.yml中配置的 `UserAuthorization` 及后端服务的地址。在上方的docekr-compose.yml文件示例中，后端地址为：http://你的IP:3310，当然你也可以配置为域名。
+
+![monitor-auto](https://github.com/lovedust99/Source/blob/main/pic/tschkweb.jpg?raw=true)
+
+⭕请注意：前端如果配置为https域名，请求的后端接口也必须为https域名而不是IP地址。
+
+如果想启用自动化服务，你必须确保在docker-compose.yml中配置了你的数据库连接字符串，否则开启自动化后将只判断你的token.json中的token，但不会对你的中转服务数据库造成变化。
+
+建议自动化监测频率为每天：86400秒。
+
 
 ## 💦官方API状态检测（更新中）
 
-#### DeepSeek：提供详略两种查询方式
+#### DeepSeek：提供三种查询方式
 
-##### 一：查看单个token的详细信息
+##### 一：查看token的详细信息
 
 首次从官方API平台创建token时（也可以随时登录获取），打开用量信息页面：https://platform.deepseek.com/usage ，然后F12打开开发者工具，从Application > LocalStorage本地存储中找到userToken中的value值，这将作为`Authorization`的`Bearer Token`值：`Authorization: Bearer TOKEN`
 
@@ -327,10 +371,33 @@ Authorization: Bearer [自己设定的请求头校验值（来自于环境变量
     "4659117"
 ]
 ```
+##### 三：通过配置API-Key列表来查看多token时的每个token的可用额度
 
+进入docker-compose.yml同级目录的data文件夹，编辑 `data/OfficialToken/deep_key.json` 文件，每行一条账号信息，格式为`sk-xxxxxxxxx`，不要加标点符号，末尾不要留空格。编辑好保存即可，无需重启容器。
+
+`GET`  /api/OfficialTokenCheck/Check/deep/keylist
+
+请求头：需要设置 Authorization 头部：
+
+```
+Authorization: Bearer [自己设定的请求头校验值（来自于环境变量）]
+```
+返回内容(数组)：
+```
+{
+
+    "sk-xxxxxx":"10.00-true",
+    "sk-xxxxxx":"10.00-true",
+    "sk-xxxxxx":"10.00-true",
+    "sk-xxxxxx":"10.00-true",
+    "sk-xxxxxx":"10.00-false"
+}
+```
+
+##### 当然你也可以使用可视化提供的服务进行查询
 
 #### 其他更新中
-目前已支持DeepSeek，无需实名认证即可使用官方Token，其他平台均需实名认证，批量获取状态意义不大。
+
 
 
 ## 注意事项
