@@ -90,7 +90,7 @@ services:
       - tschk-network
     volumes: 
       - ./data:/app/wwwroot 
-  # 以下为项目自带的前端管理服务，如果只调用接口，则下面内容可以删掉
+  # 以下为项目自带的前端管理服务
   tschkweb:
     image: lovedust99/tschkweb:latest
     restart: always
