@@ -36,18 +36,18 @@ TODO
   - [准备](#准备)
   - [部署使用](#部署使用)
   - [环境变量说明](#环境变量说明)
-  - [💦LLM-Free-api-后端接口使用方法](#llm-free-api-后端接口使用方法)
-      - [Uptime-Kuma监控](#uptime-kuma监控)
-      - [应用场景扩展](#应用场景扩展)
+  - [💦可视化服务](#可视化服务)
   - [💦自动化维护（可视化） 使用方法](#自动化维护可视化-使用方法)
         - [⭕重要注意事项！](#重要注意事项)
-  - [💦可视化服务](#可视化服务)
   - [💦官方API状态检测（推荐使用可视化前端）](#官方api状态检测推荐使用可视化前端)
       - [OpenAI AccessToken：](#openai-accesstoken)
       - [DeepSeek：提供两种查询方式](#deepseek提供两种查询方式)
         - [一：配置用户名和密码列表查询](#一配置用户名和密码列表查询)
         - [二：通过配置API-Key列表查询](#二通过配置api-key列表查询)
       - [其他更新中](#其他更新中)
+  - [附：LLM-Free-api-后端接口使用方法](#附llm-free-api-后端接口使用方法)
+      - [Uptime-Kuma监控](#uptime-kuma监控)
+      - [应用场景扩展](#应用场景扩展)
   - [注意事项](#注意事项)
   - [其他引用](#其他引用)
 
@@ -142,75 +142,33 @@ docker-compose down && docker-compose pull && docker-compose up -d
 |可选|TokenStatuCheckUrls__SparkTokenCheckUrl|[LLM地址/token/check]|讯飞星火|/api/LLM_TokenCheck/Check/spark|
 
 - `UserAuthorization` 是**必填**的，值随便写，建议复杂一点并保证私密性，主要用来做请求校验。
-- 部署了哪个LLM-Free-api项目就把哪个加到环境变量里，如果没有某项目那么建议删掉他的环境变量，注意删掉 `[ ]`。
+- 根据自己部署项目情况选择性添加环境变量，如果没有某项目那么建议删掉他的环境变量，在填写的时候注意删掉示例值外的 `[ ]` 。
 
 - 如果要启用自动化维护功能，则需要配置数据库连接字符串环境变量。远程数据库防火墙需要同时放行端口，数据库地址可以使用公网地址也可以使用内网地址或容器网络，这里不介绍，具体请问你的AI助手。
 
-- 如果只是使用deepseek官方token的可以不用填写除`UserAuthorization`外的任何环境变量。
+## 💦可视化服务
 
-## 💦LLM-Free-api-后端接口使用方法
+可视化服务可以用来自动化管理token，也可以用来实现最基础的token状态监测。
 
-**如果你只需要调取接口，请阅读这一节；如果你需要自动化维护或使用可视化功能，那么可以跳过这一节。**
+确保你在docker-compose中配置了前端部分并正常启动。打开ip:前端服务端口，例如：http://1.1.1.1:3020。
 
-进入docker-compose.yml同级目录的data文件夹，编辑不同项目文件夹下的`token.json`文件，每行一个token，不要加标点符号。编辑好保存即可，无需重启容器。
+在右上角 `配置请求密钥` 中分别填写你在docker-compose.yml中配置的 `UserAuthorization` 及本项目后端服务的地址。在上方的docekr-compose.yml文件示例中，后端地址为：http://你的IP:3010，当然你也可以配置为域名。
 
-`POST` /api/LLM_TokenCheck/Check/deep
+![monitor-auto](https://github.com/lovedust99/Source/blob/main/pic/tschkweb.jpg?raw=true)
 
-请求头：需要设置 Authorization 头部：
-
-```
-Authorization: Bearer [自己设定的请求头校验值]
-```
-无需设置请求体
-
-响应数据示例：
-```
-{
-    #服务名称
-    "ServiceName": "LLM-Deep",
-
-    #token队列整体的状态，50%以上的token有效时为tokentrue，低于50%为tokenfalse
-    "tokenStatus": "tokentrue",
-
-    #token队列中token总数
-    "totalTokenCount": 4,
-
-    #token队列中失效的token总数
-    "invalidCount": 1,
-
-    #token队列中失效token在队列中的位置，数组中有几代表第几个
-    "invalidTokenPositions": [2],
-    
-    #token队列中可用token占所有token的比例
-    "validTokenPercentage": "75%"
-}
-```
-你可以根据这些返回内容进行二次定制。下面提供一种最简单的通过uptime-kuma进行监控的示例，当然最合适的是配合数据库支持来使用。
-
-#### Uptime-Kuma监控
-
-使用Uptime-Kuma的 `http关键字` 监控类型，具体配置如下：
-
-![1](https://github.com/lovedust99/Source/blob/main/pic/1.jpg?raw=true)
+⭕请注意：前端如果配置为https域名，请求的后端接口也必须为https域名而不是IP地址。
 
 
-#### 应用场景扩展
-部分用户将LLM分为免费和付费版（当然，你可以定义其他场景），两个版本对应不同的token，为了防止token检测时产生混淆，这里提供一种扩展支持。
 
-以上所有的LLM接口后添加 `/free` 即可调用扩展检测接口，例如：
-```
-https://yoursite.com/api/LLM_TokenCheck/Check/deep/free
-```
 
-接口的使用方式与上述一致。同时，你还需要在 `token.json` 同级目录下新增一个 `token2.json` 文件，用于存放免费token，格式与之前所述一致。
 
 ## 💦自动化维护（可视化） 使用方法
 
 ##### ⭕重要注意事项！
 - 目前所有监控服务均已支持原生 `One-API` 。使用前请检查自己的项目是否一致或二开项目是否修改过数据库结构。如需其他中转，请提issue，会火速适配。
-- 在渠道中，请使用**批量添加功能**，保证**每个渠道只包含一个token**，以便于维护。没有使用批量添加的，请重新修改。图如下：
-- *随着可视化管理功能的逐渐完善，自动化维护的后端接口将不再使用，如需使用自动化，请使用可视化服务。*
-
+- 在One-API渠道中，请使用 **批量添加功能** ，保证 **每个渠道只包含一个token** ，以便于维护。没有使用批量添加的，请重新修改。图如下。
+- 在可视化前端中点击启用自动化，并输入周期即可。建议自动化监测频率为每天：86400秒，太短会导致性能一般的服务器发生阻塞。
+- 未在docker-compose.yml中配置数据库连接字符串时，开启自动化后将只对本地token编辑器中存储的token生效（失效token将统一存放在data文件夹的expire_token.json下），不会对你的中转服务数据库造成变化。
 ![渠道](https://github.com/lovedust99/Source/blob/main/pic/qudao.png?raw=true)
 
 <!-- 进入docker-compose.yml同级目录的data文件夹，编辑不同项目文件夹下的`token.json`文件，每行一个token，不要加标点符号。编辑好保存即可，无需重启容器。
@@ -270,22 +228,8 @@ Authorization: Bearer [自己设定的请求头校验值]
 
 ![1](https://github.com/lovedust99/Source/blob/main/pic/1.jpg?raw=true) -->
 
-## 💦可视化服务
 
-可视化服务可以用来自动化管理token，也可以用来实现最基础的token状态监测。
-
-确保你在docker-compose中配置了前端部分并正常启动。打开ip:前端服务端口，例如：http://1.1.1.1:3020。
-
-在右上角 `配置请求密钥` 中分别填写你在docker-compose.yml中配置的 `UserAuthorization` 及后端服务的地址。在上方的docekr-compose.yml文件示例中，后端地址为：http://你的IP:3310，当然你也可以配置为域名。
-
-![monitor-auto](https://github.com/lovedust99/Source/blob/main/pic/tschkweb.jpg?raw=true)
-
-⭕请注意：前端如果配置为https域名，请求的后端接口也必须为https域名而不是IP地址。
-
-如果想启用自动化服务，你必须确保在docker-compose.yml中配置了你的数据库连接字符串，否则开启自动化后将只判断你的token.json中的token，而不会对你的中转服务数据库造成变化。
-
-建议自动化监测频率为每天：86400秒。
-
+*随着可视化管理功能的逐渐完善，自动化维护的后端接口将不再使用，如需使用自动化，请使用可视化服务。*
 
 ## 💦官方API状态检测（推荐使用可视化前端）
 
@@ -298,6 +242,11 @@ Authorization: Bearer [自己设定的请求头校验值]
 
 在可视化主页右上角 `配置请求密钥` 中选择你要使用的检测提供商。然后打开侧边栏的 `编辑Token` ，在 `官方平台API-Key编辑` 中编辑 `OpenAI-Accesstoken` 。配置完成后返回主页即可获取状态。
 
+这里提供的状态格式为：
+
+```
+true/false（表示可用性）-预计过期时间: 06/10/2024 17:05:57
+```
 #### DeepSeek：提供两种查询方式
 
 *随着可视化管理功能的逐渐完善，自动化维护的后端接口将不再使用，如需使用自动化，请使用可视化服务。*
@@ -390,6 +339,12 @@ Authorization: Bearer [自己设定的请求头校验值（来自于环境变量
 
 打开侧边栏的 `编辑Token` ，在 `官方平台API-Key编辑` 中编辑 `DeepSeek-API-Key` 。配置完成后返回主页即可获取状态。
 
+这里提供的状态格式为：
+
+```
+sk-xxxxxxxxxx-10.00(CNY)-true/false（表示可用性）
+```
+
 <!-- 进入docker-compose.yml同级目录的data文件夹，编辑 `data/OfficialToken/deep_key.json` 文件，每行一条账号信息，格式为`sk-xxxxxxxxx`，不要加标点符号，末尾不要留空格。编辑好保存即可，无需重启容器。
 
 `GET`  /api/OfficialTokenCheck/Check/deep/keylist
@@ -414,7 +369,61 @@ Authorization: Bearer [自己设定的请求头校验值（来自于环境变量
 
 #### 其他更新中
 
+## 附：LLM-Free-api-后端接口使用方法
 
+**如果你只需要调取接口，请阅读这一节，只提供基础状态获取接口。**
+
+进入docker-compose.yml同级目录的data文件夹，编辑不同项目文件夹下的`token.json`文件，每行一个token，不要加标点符号。编辑好保存即可，无需重启容器。
+
+`POST` /api/LLM_TokenCheck/Check/deep
+
+请求头：需要设置 Authorization 头部：
+
+```
+Authorization: Bearer [自己设定的请求头校验值]
+```
+无需设置请求体
+
+响应数据示例：
+```
+{
+    #服务名称
+    "ServiceName": "LLM-Deep",
+
+    #token队列整体的状态，50%以上的token有效时为tokentrue，低于50%为tokenfalse
+    "tokenStatus": "tokentrue",
+
+    #token队列中token总数
+    "totalTokenCount": 4,
+
+    #token队列中失效的token总数
+    "invalidCount": 1,
+
+    #token队列中失效token在队列中的位置，数组中有几代表第几个
+    "invalidTokenPositions": [2],
+    
+    #token队列中可用token占所有token的比例
+    "validTokenPercentage": "75%"
+}
+```
+你可以根据这些返回内容进行二次定制。下面提供一种最简单的通过uptime-kuma进行监控的示例，当然最合适的是配合数据库支持来使用。
+
+#### Uptime-Kuma监控
+
+使用Uptime-Kuma的 `http关键字` 监控类型，具体配置如下：
+
+![1](https://github.com/lovedust99/Source/blob/main/pic/1.jpg?raw=true)
+
+
+#### 应用场景扩展
+部分用户将LLM分为免费和付费版（当然，你可以定义其他场景），两个版本对应不同的token，为了防止token检测时产生混淆，这里提供一种扩展支持。
+
+以上所有的LLM接口后添加 `/free` 即可调用扩展检测接口，例如：
+```
+https://yoursite.com/api/LLM_TokenCheck/Check/deep/free
+```
+
+接口的使用方式与上述一致。同时，你还需要在 `token.json` 同级目录下新增一个 `token2.json` 文件，用于存放免费token，格式与之前所述一致。
 
 ## 注意事项
 
