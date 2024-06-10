@@ -11,8 +11,11 @@
 
 ## 功能
 
-- ✅ 详细的token状态响应。目前已支持：[LLM Red Team-Free-API](https://github.com/LLM-Red-Team)项目、OpenAI等官方APIKey，持续更新。
-- ✅ LLM Red Team-Free-API状态监控支持对接[One-API](https://github.com/songquanpeng/one-api)。
+- ✅ 详细的token状态响应。
+- ✅ 支持[LLM Red Team-Free-API](https://github.com/LLM-Red-Team)项目。
+- ✅ 支持deepseek等官方APIKey用量监控
+- ✅ 支持OpenAI的refreshtoken/accesstoken操作。
+- ✅ 支持对接[One-API](https://github.com/songquanpeng/one-api)。
 - ✅ 启用数据库自动化维护功能后，失效token不直接删除，会统一存放在其他位置以供查看。
 - ✅ `V1.3.0` 版本起增加了可视化支持，提供友好的网页在线管理。提供控制台基本数据看板，支持查询所有服务状态、支持自动化管理、支持日志审计和网页管理等功能。
 - ✅ 项目轻量化，本体不含数据库，配置及token数据统一本地化存储。
@@ -235,6 +238,7 @@ Authorization: Bearer [自己设定的请求头校验值]
 
 #### OpenAI AccessToken：
 
+
 这里提供 `oaifree` 和 `lanqian528/chat2api` （需部署该服务）两种查询方式，链接在文末引用。
 
 - 注意：`oaifree` 需要ChatGPT Plus会员资格
@@ -247,6 +251,13 @@ Authorization: Bearer [自己设定的请求头校验值]
 ```
 true/false（表示可用性）-预计过期时间: 06/10/2024 17:05:57
 ```
+
+#### OpenAI refreshtoken：
+
+- 支持通过refreshtoken刷新accesstoken，渠道持续更新中。如图。
+![rt-at](https://github.com/lovedust99/Source/blob/main/pic/setting1.png?raw=true)
+
+
 #### DeepSeek：提供两种查询方式
 
 *随着可视化管理功能的逐渐完善，自动化维护的后端接口将不再使用，如需使用自动化，请使用可视化服务。*
