@@ -12,8 +12,8 @@
 ## 功能
 
 - ✅ 详细的token状态响应。
-- ✅ 支持[LLM Red Team-Free-API](https://github.com/LLM-Red-Team)项目。
-- ✅ 支持deepseek等官方APIKey用量监控
+- ✅ 支持[LLM Red Team-Free-API](https://github.com/LLM-Red-Team)项目，部分项目支持一键获取token。
+- ✅ 支持deepseek等官方APIKey用量监控。
 - ✅ 支持OpenAI的refreshtoken/accesstoken操作。
 - ✅ 支持对接[One-API](https://github.com/songquanpeng/one-api)。
 - ✅ 启用数据库自动化维护功能后，失效token不直接删除，会统一存放在其他位置以供查看。
@@ -44,6 +44,7 @@ TODO
         - [⭕重要注意事项！](#重要注意事项)
   - [💦官方API状态检测（推荐使用可视化前端）](#官方api状态检测推荐使用可视化前端)
       - [OpenAI AccessToken：](#openai-accesstoken)
+      - [OpenAI refreshtoken：](#openai-refreshtoken)
       - [DeepSeek：提供两种查询方式](#deepseek提供两种查询方式)
         - [一：配置用户名和密码列表查询](#一配置用户名和密码列表查询)
         - [二：通过配置API-Key列表查询](#二通过配置api-key列表查询)
@@ -151,18 +152,21 @@ docker-compose down && docker-compose pull && docker-compose up -d
 
 ## 💦可视化服务
 
-可视化服务可以用来自动化管理token，也可以用来实现最基础的token状态监测。
+可视化服务可以用来自动化管理token，也可以用来实现最基础的token状态监测，如下图所示( `VF-1.4.3` 版本)。
+
+![monitor-auto](https://github.com/lovedust99/Source/blob/main/pic/home.png?raw=true)
 
 确保你在docker-compose中配置了前端部分并正常启动。打开ip:前端服务端口，例如：http://1.1.1.1:3020。
 
-在右上角 `配置请求密钥` 中分别填写你在docker-compose.yml中配置的 `UserAuthorization` 及本项目后端服务的地址。在上方的docekr-compose.yml文件示例中，后端地址为：http://你的IP:3010，当然你也可以配置为域名。
-
-![monitor-auto](https://github.com/lovedust99/Source/blob/main/pic/tschkweb.jpg?raw=true)
+在右上角 `系统配置` 中分别填写你在docker-compose.yml中配置的 `UserAuthorization` 及本项目后端服务的地址。在上方的docekr-compose.yml文件示例中，后端地址为：http://你的IP:3010，当然你也可以配置为域名。
 
 ⭕请注意：前端如果配置为https域名，请求的后端接口也必须为https域名而不是IP地址。
 
+其他功能说明：
+- OpenAI-Accesstoken检测服务商：可以用于Accesstoken的测活，具体介绍请查看下方【官方API状态检测】章节。
+- 服务选择：可以用于自定义每次打开该页面时是否自动刷新以及启用哪些服务。
 
-
+![monitor-auto2](https://github.com/lovedust99/Source/blob/main/pic/setting.png?raw=true)
 
 
 ## 💦自动化维护（可视化） 使用方法
@@ -170,7 +174,7 @@ docker-compose down && docker-compose pull && docker-compose up -d
 ##### ⭕重要注意事项！
 - 目前所有监控服务均已支持原生 `One-API` 。使用前请检查自己的项目是否一致或二开项目是否修改过数据库结构。如需其他中转，请提issue，会火速适配。
 - 在One-API渠道中，请使用 **批量添加功能** ，保证 **每个渠道只包含一个token** ，以便于维护。没有使用批量添加的，请重新修改。图如下。
-- 在可视化前端中点击启用自动化，并输入周期即可。建议自动化监测频率为每天：86400秒，太短会导致性能一般的服务器发生阻塞。
+- 在页面中点击 `功能菜单` ，z在自动化设置菜单栏中点击 `启用` 并输入周期即可。建议自动化监测频率为每天：86400秒，太短会导致性能一般的服务器发生阻塞。同时自动化产生的日志可以在侧边栏导航中的日志中查看。
 - 未在docker-compose.yml中配置数据库连接字符串时，开启自动化后将只对本地token编辑器中存储的token生效（失效token将统一存放在data文件夹的expire_token.json下），不会对你的中转服务数据库造成变化。
 ![渠道](https://github.com/lovedust99/Source/blob/main/pic/qudao.png?raw=true)
 
@@ -244,7 +248,7 @@ Authorization: Bearer [自己设定的请求头校验值]
 - 注意：`oaifree` 需要ChatGPT Plus会员资格
 - 使用 `lanqian528/chat2api` 需要先在docker-compose.yml中配置你的chat2api服务地址，详见上方环境变量说明。
 
-在可视化主页右上角 `配置请求密钥` 中选择你要使用的检测提供商。然后打开侧边栏的 `编辑Token` ，在 `官方平台API-Key编辑` 中编辑 `OpenAI-Accesstoken` 。配置完成后返回主页即可获取状态。
+在可视化主页右上角 `系统配置` 中选择你要使用的检测提供商。然后打开侧边栏的 `编辑Token` ，在 `官方平台API-Key编辑` 中编辑 `OpenAI-Accesstoken` 。配置完成后返回主页即可获取状态。
 
 这里提供的状态格式为：
 
