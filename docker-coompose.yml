@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  tschkweb:
+    image: lovedust99/tschkweb:latest
+    restart: always
+    ports:
+      - "3101:80"
+    networks:
+      - tschk-network
+    depends_on:
+      - tschk
+  tschk:
+    image: lovedust99/tschk:latest
+    restart: always
+    ports:
+      - "3102:80"
+    networks:
+      - tschk-network
+    volumes:
+      - ./data:/app/wwwroot
+networks:
+  tschk-network:
+    driver: bridge
